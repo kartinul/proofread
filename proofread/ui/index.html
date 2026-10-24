@@ -87,6 +87,8 @@ const problemBox = $('#problem'), mathField = $('#math'), goButton = $('#go'), t
 
 let steps = 0, rejections = 0
 
+const TEX = { TeX: { delimiters: { inline: [['$', '$'], ['\\(', '\\)']], display: [['$$', '$$'], ['\\[', '\\]']] } } }
+const question = text => { const q = el('div', 'q', text); window.MathLive?.renderMathInElement(q, TEX); return q }
 const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls || '', textContent: text ?? '' })
 
 function parseCode(args) {
@@ -147,7 +149,7 @@ async function solve() {
   if (!problem) return problemBox.focus()
   goButton.disabled = true
   record({ problem })
-  timeline.append(el('div', 'q', problem), el('div', 'spinner'))
+  timeline.append(question(problem), el('div', 'spinner'))
   $('.spinner').innerHTML = '<b></b><b></b><b></b>'
   steps = rejections = 0
   const start = Date.now()
@@ -194,7 +196,7 @@ function renderChats() {
 }
 function openChat(chat) {
   current = chat; timeline.replaceChildren(); renderChats()
-  chat?.events.forEach(e => e.problem ? timeline.append(el('div', 'q', e.problem)) : e.type === 'log' ? renderLog(e.text) : renderDone(e))
+  chat?.events.forEach(e => e.problem ? timeline.append(question(e.problem)) : e.type === 'log' ? renderLog(e.text) : renderDone(e))
 }
 $('#newchat').onclick = () => openChat(null)
 $('#clearchat').onclick = () => { if (current) { current.events = []; save(); openChat(current) } }

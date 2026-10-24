@@ -53,7 +53,8 @@ struct ContentView: View {
 
     private var inputField: some View {
         HStack(spacing: 12) {
-            TextField("Ask a math problem…", text: $problem)
+            TextField("Ask a math problem…", text: $problem, axis: .vertical)
+                .lineLimit(1...6)
                 .textFieldStyle(.plain)
                 .font(.title2)
                 .onSubmit(submit)
