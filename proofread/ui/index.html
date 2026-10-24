@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proofread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--glass:rgba(255,255,255,.06);--edge:rgba(255,255,255,.14);--text:#e8ecf4;--dim:#8b93a7;--green:#34d399;--red:#f87171;--violet:#a78bfa;--cyan:#22d3ee;--amber:#fbbf24}
+*{box-sizing:border-box;margin:0}
+body{font-family:Inter,system-ui,sans-serif;color:var(--text);background:#05060c;min-height:100vh;overflow-x:hidden}
+.mesh{position:fixed;inset:-20%;z-index:-1;filter:blur(80px) saturate(140%);opacity:.75}
+.mesh i{position:absolute;width:45vmax;height:45vmax;border-radius:50%;animation:drift 22s ease-in-out infinite alternate}
+.mesh i:nth-child(1){background:#5b21b6;top:0;left:0}
+.mesh i:nth-child(2){background:#0e7490;top:30%;right:0;animation-delay:-6s}
+.mesh i:nth-child(3){background:#be185d;bottom:0;left:25%;animation-delay:-12s;opacity:.6}
+@keyframes drift{to{transform:translate(12vw,-10vh) scale(1.2)}}
+main{max-width:860px;margin:0 auto;padding:56px 16px 80px}
+header{text-align:center;margin-bottom:32px}
+h1{font-size:clamp(40px,8vw,68px);font-weight:800;letter-spacing:-.04em;background:linear-gradient(120deg,#fff,#c4b5fd 50%,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}
+header p{color:var(--dim);margin-top:8px}
+.glass{background:var(--glass);border:1px solid var(--edge);border-radius:22px;backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+.ask{padding:18px}
+textarea{width:100%;min-height:96px;resize:vertical;background:transparent;border:0;outline:0;color:var(--text);font:500 20px/1.5 Inter,sans-serif}
+textarea::placeholder{color:#5c6378}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.chip{border:1px solid var(--edge);background:rgba(255,255,255,.04);color:var(--dim);padding:7px 12px;border-radius:999px;font:13px Inter;cursor:pointer;transition:.2s}
+.chip:hover{color:var(--text);border-color:var(--violet);box-shadow:0 0 18px rgba(167,139,250,.35)}
+button.go{margin-left:auto;border:0;border-radius:14px;padding:12px 24px;font:600 15px Inter;color:#fff;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#0891b2);box-shadow:0 0 28px rgba(124,58,237,.5);transition:.2s}
+button.go:hover{transform:translateY(-1px);box-shadow:0 0 40px rgba(34,211,238,.55)}
+button.go:disabled{opacity:.5;cursor:wait}
+#timeline{margin-top:28px;display:flex;flex-direction:column;gap:12px}
+.step{padding:14px 16px;animation:rise .35s ease both;border-left:3px solid var(--edge)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.step .head{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim)}
+.badge{font:600 11px 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:999px;border:1px solid currentColor}
+.sympy{color:var(--violet)} .check{color:var(--cyan)} .recall{color:var(--amber)} .answer{color:var(--green)} .prose,.other{color:var(--dim)}
+pre{margin-top:10px;padding:12px;border-radius:12px;background:rgba(0,0,0,.35);font:13px/1.55 'JetBrains Mono',monospace;white-space:pre-wrap;word-break:break-word;color:#cdd3e1}
+pre.out{color:#9ae6b4}
+.step.rejected{border-left-color:var(--red);background:rgba(248,113,113,.08);animation:rise .35s ease both,shake .5s .35s}
+.step.rejected .badge{color:var(--red)}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.step.ok{border-left-color:var(--green)}
+.result{margin-top:20px;padding:26px;text-align:center;animation:rise .5s ease both}
+.result .val{font:500 clamp(26px,5vw,40px) 'JetBrains Mono',monospace;margin:6px 0 16px;word-break:break-word}
+.seal{display:inline-flex;gap:8px;align-items:center;padding:10px 18px;border-radius:999px;font-weight:600;color:var(--green);border:1px solid rgba(52,211,153,.5);background:rgba(52,211,153,.1);animation:glow 2s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 34px rgba(52,211,153,.55)}}
+.result.fail .seal{color:var(--red);border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.1);animation:none}
+.spinner{display:flex;gap:6px;justify-content:center;padding:14px}
+.spinner b{width:8px;height:8px;border-radius:50%;background:var(--violet);animation:pulse 1s infinite alternate}
+.spinner b:nth-child(2){animation-delay:.2s}.spinner b:nth-child(3){animation-delay:.4s}
+@keyframes pulse{to{opacity:.2;transform:scale(.6)}}
+@media (max-width:560px){button.go{width:100%;margin-left:0}textarea{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="mesh"><i></i><i></i><i></i></div>
+<main>
+  <header><h1>Proofread</h1><p>A math agent that doesn't trust itself. Every answer is checked by SymPy.</p></header>
+  <section class="glass ask">
+    <textarea id="problem" placeholder="Ask a math problem…"></textarea>
+    <div class="row">
+      <button class="chip">What is 7919 * 4231?</button>
+      <button class="chip">Integral of x^2 e^x from 0 to 1</button>
+      <button class="chip">How many divisors does 7560 have?</button>
+      <button class="go" id="go">Solve</button>
+    </div>
+  </section>
+  <div id="timeline"></div>
+</main>
+<script>
+const $ = s => document.querySelector(s)
+const problemBox = $('#problem'), goButton = $('#go'), timeline = $('#timeline')
+
+const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls || '', textContent: text ?? '' })
+
+function parseCode(args) {
+  try { const obj = JSON.parse(args); return obj.code ?? obj.verify ?? obj.query ?? (obj.a ? `${obj.a}  ≟  ${obj.b}` : args) }
+  catch { return args }
+}
+
+function renderLog(text) {
+  const line = text.trim()
+  let tool = 'other', body = line, output = '', rejected = false, ok = false
+  let m
+  if ((m = line.match(/^answer=(.*) verify→([\s\S]*)$/))) {
+    tool = 'answer'; body = `answer = ${m[1]}`; output = m[2]; ok = /True\s*$/.test(m[2]); rejected = !ok
+  } else if ((m = line.match(/^(\w+)\((.*?)\) → ([\s\S]*)$/))) {
+    tool = m[1]; body = parseCode(m[2]); output = m[3]; rejected = output.startsWith('REJECTED')
+    if (tool === 'answer') return
+  } else if (line.startsWith('prose:')) {
+    tool = 'prose'; body = line.slice(6).trim()
+  }
+  const step = el('div', `glass step ${rejected ? 'rejected' : ''} ${ok ? 'ok' : ''}`)
+  const head = el('div', 'head')
+  head.append(el('span', `badge ${['sympy', 'check', 'recall', 'answer', 'prose'].includes(tool) ? tool : 'other'}`, tool), el('span', '', rejected ? 'REJECTED' : ok ? 'verify printed True' : ''))
+  step.append(head, el('pre', '', body))
+  if (output) step.append(el('pre', 'out', output))
+  timeline.insertBefore(step, $('.spinner'))
+}
+
+function renderDone({ answer, verified, error }) {
+  $('.spinner')?.remove()
+  const card = el('div', `glass result ${verified ? '' : 'fail'}`)
+  card.append(el('div', '', verified ? 'Answer' : 'No verified answer'), el('div', 'val', answer ?? '—'), el('div', 'seal', verified ? '✓ Verified by SymPy' : (error ? `✗ ${error}` : '✗ Not verified')))
+  timeline.append(card)
+}
+
+async function solve() {
+  const problem = problemBox.value.trim()
+  if (!problem) return problemBox.focus()
+  goButton.disabled = true
+  timeline.replaceChildren(el('div', 'spinner'))
+  $('.spinner').innerHTML = '<b></b><b></b><b></b>'
+  try {
+    const res = await fetch('/solve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem }) })
+    if (!res.ok) throw new Error(await res.text())
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
+    let buffer = ''
+    for (;;) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += value
+      const chunks = buffer.split('\n\n'); buffer = chunks.pop()
+      for (const chunk of chunks) {
+        if (!chunk.startsWith('data: ')) continue
+        const event = JSON.parse(chunk.slice(6))
+        event.type === 'log' ? renderLog(event.text) : renderDone(event)
+      }
+    }
+  } catch (e) { renderDone({ answer: null, verified: false, error: e.message }) }
+  goButton.disabled = false
+}
+
+document.querySelectorAll('.chip').forEach(chip => chip.onclick = () => { problemBox.value = chip.textContent; solve() })
+goButton.onclick = solve
+problemBox.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) solve() }
+</script>
+</body>
+</html>

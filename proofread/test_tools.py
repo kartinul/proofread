@@ -16,3 +16,8 @@ assert text_call('{"answer":"6","verify":"print(True)"}') == ("answer", {"answer
 assert text_call('sure: {"name":"sympy","arguments":{"code":"print(1)"}}') == ("sympy", {"code": "print(1)"})
 assert text_call("the answer is 6") is None
 print("text_call ok")
+from agent import unwrap
+assert run_sympy("1 + 1") == "2"
+assert run_sympy("diff(x**2, x)") == "2*x"
+assert unwrap({"parameters": {"code": "1"}}) == {"code": "1"}
+print("quirks ok")

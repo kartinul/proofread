@@ -31,7 +31,13 @@ def text_call(content):
     args = args.get("arguments", args)
     return (name, args) if name else None
 
+def unwrap(args):
+    while len(args) == 1 and isinstance(next(iter(args.values())), dict):
+        args = next(iter(args.values()))
+    return args
+
 def run_tool(name, args, problem, mem, log):
+    args = unwrap(args)
     if name == "sympy":
         return run_sympy(args.get("code", "")), None
     if name == "check":

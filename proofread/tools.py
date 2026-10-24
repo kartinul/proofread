@@ -1,7 +1,19 @@
-import json, subprocess, sys
+import ast, subprocess, sys
+
+def auto_print(code):
+    # REPL-style: print the last bare expression, since models often forget print()
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return code
+    last = tree.body[-1].value if tree.body and isinstance(tree.body[-1], ast.Expr) else None
+    if last and not (isinstance(last, ast.Call) and getattr(last.func, "id", "") == "print"):
+        tree.body[-1] = ast.Expr(ast.Call(ast.Name("print", ast.Load()), [last], []))
+        return ast.unparse(ast.fix_missing_locations(tree))
+    return code
 
 def run_sympy(code, timeout=10):
-    prog = "from sympy import *\n" + code
+    prog = "from sympy import *\nx, y, z, n, k = symbols('x y z n k')\n" + auto_print(code)
     try:
         r = subprocess.run([sys.executable, "-I", "-c", prog], capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
