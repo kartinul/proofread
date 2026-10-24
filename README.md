@@ -69,7 +69,7 @@ python bench.py        # baseline vs Proofread on the built-in problem set
 python test_tools.py   # self-test for tools + memory
 ```
 
-With no env vars it uses your first local Ollama model. Env vars: `MODEL`, `BASE_URL` (default `http://localhost:11434/v1`), `API_KEY`.
+With no env vars it uses freellmapi at `http://localhost:3001/v1` (model `auto`, key from `FREELLMAPI_TOKEN`). Env vars: `MODEL`, `BASE_URL`, `API_KEY`.
 
 ### Web UI — watch the harness think
 

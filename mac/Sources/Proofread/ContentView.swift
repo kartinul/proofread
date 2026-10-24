@@ -65,7 +65,7 @@ struct ContentView: View {
             .disabled(problem.isEmpty || solver.running)
         }
         .padding(.horizontal, 22).padding(.vertical, 16)
-        .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 26))
+        .background(.quaternary, in: .rect(cornerRadius: 26))
     }
 
     private var chips: some View {
@@ -76,7 +76,7 @@ struct ContentView: View {
                         .buttonStyle(.plain)
                         .font(.callout)
                         .padding(.horizontal, 14).padding(.vertical, 8)
-                        .glassEffect(.regular.interactive(), in: .capsule)
+                        .background(.quaternary, in: .capsule)
                 }
             }
         }
@@ -120,7 +120,7 @@ struct StepRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(14)
-        .glassEffect(.regular.tint(step.rejected ? .red.opacity(0.25) : .clear), in: .rect(cornerRadius: 16))
+        .background(step.rejected ? AnyShapeStyle(.red.opacity(0.15)) : AnyShapeStyle(.quaternary), in: .rect(cornerRadius: 16))
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }
@@ -137,11 +137,11 @@ struct AnswerCard: View {
                 .font(.headline)
                 .padding(.horizontal, 16).padding(.vertical, 8)
                 .foregroundStyle(color)
-                .glassEffect(.regular, in: .capsule)
+                .background(color.opacity(0.15), in: .capsule)
         }
         .frame(maxWidth: .infinity)
         .padding(28)
-        .glassEffect(.regular, in: .rect(cornerRadius: 28))
+        .background(.quaternary, in: .rect(cornerRadius: 28))
         .padding(.top, 8)
         .transition(.scale.combined(with: .opacity))
     }

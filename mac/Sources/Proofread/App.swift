@@ -12,7 +12,6 @@ struct ProofreadApp: App {
         WindowGroup("Proofread") {
             ContentView()
                 .frame(minWidth: 720, minHeight: 640)
-                .containerBackground(.ultraThinMaterial, for: .window)
         }
         .windowStyle(.hiddenTitleBar)
     }

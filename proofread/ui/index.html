@@ -10,25 +10,19 @@
 :root{--glass:rgba(255,255,255,.06);--edge:rgba(255,255,255,.14);--text:#e8ecf4;--dim:#8b93a7;--green:#34d399;--red:#f87171;--violet:#a78bfa;--cyan:#22d3ee;--amber:#fbbf24}
 *{box-sizing:border-box;margin:0}
 body{font-family:Inter,system-ui,sans-serif;color:var(--text);background:#05060c;min-height:100vh;overflow-x:hidden}
-.mesh{display:none}
-.mesh i{position:absolute;width:45vmax;height:45vmax;border-radius:50%;animation:drift 22s ease-in-out infinite alternate}
-.mesh i:nth-child(1){background:#5b21b6;top:0;left:0}
-.mesh i:nth-child(2){background:#0e7490;top:30%;right:0;animation-delay:-6s}
-.mesh i:nth-child(3){background:#be185d;bottom:0;left:25%;animation-delay:-12s;opacity:.6}
-@keyframes drift{to{transform:translate(12vw,-10vh) scale(1.2)}}
 main{max-width:860px;margin:0 auto;padding:56px 16px 80px}
 header{text-align:center;margin-bottom:32px}
 h1{font-size:clamp(40px,8vw,68px);font-weight:800;letter-spacing:-.04em;color:#fff}
 header p{color:var(--dim);margin-top:8px}
-.glass{background:var(--glass);border:1px solid var(--edge);border-radius:22px;backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+.glass{background:var(--glass);border:1px solid var(--edge);border-radius:22px;}
 .ask{padding:18px}
 textarea{width:100%;min-height:96px;resize:vertical;background:transparent;border:0;outline:0;color:var(--text);font:500 20px/1.5 Inter,sans-serif}
 textarea::placeholder{color:#5c6378}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
 .chip{border:1px solid var(--edge);background:rgba(255,255,255,.04);color:var(--dim);padding:7px 12px;border-radius:999px;font:13px Inter;cursor:pointer;transition:.2s}
-.chip:hover{color:var(--text);border-color:var(--violet);box-shadow:0 0 18px rgba(167,139,250,.35)}
+.chip:hover{color:var(--text);border-color:var(--violet)}
 button.go{margin-left:auto;border:0;border-radius:14px;padding:12px 24px;font:600 15px Inter;color:#fff;cursor:pointer;background:#fff;color:#000;transition:.2s}
-button.go:hover{transform:translateY(-1px);box-shadow:0 0 40px rgba(34,211,238,.55)}
+button.go:hover{opacity:.85}
 button.go:disabled{opacity:.5;cursor:wait}
 #timeline{margin-top:28px;display:flex;flex-direction:column;gap:12px}
 .step{padding:14px 16px;animation:rise .35s ease both;border-left:3px solid var(--edge)}
@@ -45,8 +39,7 @@ pre.out{color:#9ae6b4}
 .result{margin-top:20px;padding:26px;text-align:center;animation:rise .5s ease both}
 .result .val{font:500 clamp(26px,5vw,40px) 'JetBrains Mono',monospace;margin:6px 0 16px;word-break:break-word}
 .seal{display:inline-flex;gap:8px;align-items:center;padding:10px 18px;border-radius:999px;font-weight:600;color:var(--green);border:1px solid rgba(52,211,153,.5);background:rgba(52,211,153,.1);}
-@keyframes glow{50%{}}
-.result.fail .seal{color:var(--red);border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.1);animation:none}
+.result.fail .seal{color:var(--red);border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.1)}
 .spinner{display:flex;gap:6px;justify-content:center;padding:14px}
 .spinner b{width:8px;height:8px;border-radius:50%;background:var(--violet);animation:pulse 1s infinite alternate}
 .spinner b:nth-child(2){animation-delay:.2s}.spinner b:nth-child(3){animation-delay:.4s}
@@ -61,7 +54,6 @@ aside{position:fixed;inset:0 auto 0 0;width:240px;padding:16px;background:#0b0c1
 <script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.98.6/dist/mathlive.min.js"></script>
 </head>
 <body>
-<div class="mesh"><i></i><i></i><i></i></div>
 <aside><button class="chip" id="newchat">+ New chat</button><div id="chats"></div><button class="chip" id="clearchat">Clear chat</button><button class="chip" id="clearall">Clear all</button></aside>
 <main>
   <header><h1>Proofread</h1><p>A math agent that doesn't trust itself. Every answer is checked by SymPy.</p></header>

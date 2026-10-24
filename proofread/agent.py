@@ -1,16 +1,10 @@
-import json, os, sys, urllib.request
+import json, os, sys
 from openai import OpenAI
 from tools import SCHEMAS, run_sympy, check, plot
 from memory import Memory
 
-def first_ollama_model():
-    try:
-        return json.load(urllib.request.urlopen("http://localhost:11434/api/tags", timeout=3))["models"][0]["name"]
-    except Exception:
-        return "qwen3.5:9b-mlx"
-
-MODEL = os.getenv("MODEL") or first_ollama_model()
-client = OpenAI(base_url=os.getenv("BASE_URL", "http://localhost:11434/v1"), api_key=os.getenv("API_KEY", "ollama"), max_retries=8)
+MODEL = os.getenv("MODEL", "auto")
+client = OpenAI(base_url=os.getenv("BASE_URL", "http://localhost:3001/v1"), api_key=os.getenv("API_KEY") or os.environ["FREELLMAPI_TOKEN"], max_retries=8)
 SYSTEM = ("You are a math agent. Never trust mental arithmetic: compute with the sympy tool. "
           "Finish by calling `answer` with SymPy `verify` code that prints True. Unverified answers are rejected.")
 MAX_CHARS = 12000
