@@ -84,7 +84,7 @@ def solve(problem, mem=Memory(), max_steps=12, log=print):
             if key in seen and name != "answer":
                 out += "\nLOOP: you already ran this exact call. Stop repeating; call `answer` now."
             seen.add(key)
-            log(f"  {name}({json.dumps(args)[:150]}) → {out[:150]}")
+            log(f"  {name}({json.dumps(args)[:600]}) → {out[:400]}")
             msgs.append({"role": "tool", "tool_call_id": call_id, "content": out} if call_id else {"role": "user", "content": f"[{name} result] {out}"})
     return None, False
 
