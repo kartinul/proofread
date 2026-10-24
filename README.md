@@ -77,7 +77,7 @@ Env vars: `MODEL`, `BASE_URL` (default `http://localhost:11434/v1`), `API_KEY`.
 python proofread/server.py      # http://localhost:8765
 ```
 
-`server.py` (stdlib only) streams every harness step over Server-Sent Events (`POST /solve`). A visual **math editor** (MathLive: ∫, d/dx, Σ, lim, √, fractions, matrices, virtual keyboard) lets you type integrals like you write them. The UI renders a live timeline: each tool call gets a badge, **rejected answers shake red**, and the accepted answer gets a glowing **✓ Verified by SymPy** seal. `GET /memory` feeds a **Verified memory** panel (click a row to re-ask). Live stats show elapsed time, step count and rejection count, and a copy-answer button sits on the result. Plots appear inline in the timeline.
+`server.py` (stdlib only) streams every harness step over Server-Sent Events (`POST /solve`). A visual **math editor** (MathLive: ∫, d/dx, Σ, lim, √, fractions, matrices, virtual keyboard) lets you type integrals like you write them. The UI renders a live timeline: each tool call gets a badge, **rejected answers shake red**, and the accepted answer gets a glowing **✓ Verified by SymPy** seal. `GET /memory` feeds a **Verified memory** panel (click a row to re-ask). A sidebar keeps **multiple chats** in localStorage with New chat, Clear chat and Clear all; the mac app has Clear too. Live stats show elapsed time, step count and rejection count, and a copy-answer button sits on the result. Plots appear inline in the timeline.
 
 ![math input](docs/web-ui-empty.png)
 

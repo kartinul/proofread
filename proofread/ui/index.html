@@ -55,12 +55,14 @@ pre.out{color:#9ae6b4}
 math-field{display:block;width:100%;margin-top:10px;padding:8px 12px;background:transparent;border:1px solid var(--edge);border-radius:14px;color:var(--text);font-size:22px;--caret-color:var(--text);--selection-background-color:rgba(167,139,250,.35);--contains-highlight-background-color:transparent}
 math-field::part(menu-toggle){display:none}
 #memory{margin-top:16px;padding:14px 16px}#memory h3{font:600 12px Inter;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}.mem{display:flex;gap:8px;padding:6px 8px;border-radius:8px;font:13px 'JetBrains Mono',monospace;cursor:pointer;color:var(--dim)}.mem:hover{background:rgba(255,255,255,.05);color:var(--text)}.mem b{color:var(--green);font-weight:500;margin-left:auto}#stats{margin-top:16px;font:13px 'JetBrains Mono',monospace;color:var(--dim)}.step img{display:block;max-width:100%;margin-top:10px;border-radius:12px;background:#fff}button.copy{margin-left:8px}
+aside{position:fixed;inset:0 auto 0 0;width:240px;padding:16px;background:#0b0c12;border-right:1px solid var(--edge);display:flex;flex-direction:column;gap:8px;overflow-y:auto}aside .chat{padding:8px 10px;border-radius:8px;font-size:13px;color:var(--dim);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}aside .chat:hover,aside .chat.on{background:rgba(255,255,255,.06);color:var(--text)}body{padding-left:240px}.q{font-weight:600;margin-top:12px}@media (max-width:800px){aside{display:none}body{padding-left:0}}
 .ins{margin-top:8px}.ins .chip{font-family:'JetBrains Mono',monospace}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.98.6/dist/mathlive.min.js"></script>
 </head>
 <body>
 <div class="mesh"><i></i><i></i><i></i></div>
+<aside><button class="chip" id="newchat">+ New chat</button><div id="chats"></div><button class="chip" id="clearchat">Clear chat</button><button class="chip" id="clearall">Clear all</button></aside>
 <main>
   <header><h1>Proofread</h1><p>A math agent that doesn't trust itself. Every answer is checked by SymPy.</p></header>
   <section class="glass ask">
@@ -152,7 +154,8 @@ async function solve() {
   const problem = [problemBox.value.trim() || (math && 'Evaluate:'), math].filter(Boolean).join(' ')
   if (!problem) return problemBox.focus()
   goButton.disabled = true
-  timeline.replaceChildren(el('div', 'spinner'))
+  record({ problem })
+  timeline.append(el('div', 'q', problem), el('div', 'spinner'))
   $('.spinner').innerHTML = '<b></b><b></b><b></b>'
   steps = rejections = 0
   const start = Date.now()
@@ -171,10 +174,10 @@ async function solve() {
       for (const chunk of chunks) {
         if (!chunk.startsWith('data: ')) continue
         const event = JSON.parse(chunk.slice(6))
-        event.type === 'log' ? renderLog(event.text) : renderDone(event)
+        record(event); event.type === 'log' ? renderLog(event.text) : renderDone(event)
       }
     }
-  } catch (e) { renderDone({ answer: null, verified: false, error: e.message }) }
+  } catch (e) { const done = { answer: null, verified: false, error: e.message }; record(done); renderDone(done) }
   clearInterval(timer); tick()
   goButton.disabled = false
   loadMemory()
@@ -183,6 +186,28 @@ async function solve() {
 document.querySelectorAll('.chip:not([data-tex])').forEach(chip => chip.onclick = () => { problemBox.value = chip.textContent; mathField.value = ''; solve() })
 document.querySelectorAll('[data-tex]').forEach(btn => btn.onclick = () => { mathField.insert(btn.dataset.tex, { selectionMode: 'placeholder' }); mathField.focus() })
 goButton.onclick = solve
+const load = () => { try { return JSON.parse(localStorage.chats || '[]') } catch { return [] } }
+let chats = load(), current = chats[0]
+const save = () => { try { localStorage.chats = JSON.stringify(chats) } catch {} }
+function record(event) {
+  if (!current) chats.unshift(current = { title: event.problem.slice(0, 40), events: [] })
+  current.events.push(event); save(); renderChats()
+}
+function renderChats() {
+  $('#chats').replaceChildren(...chats.map(chat => {
+    const row = el('div', `chat ${chat === current ? 'on' : ''}`, chat.title)
+    row.onclick = () => openChat(chat)
+    return row
+  }))
+}
+function openChat(chat) {
+  current = chat; timeline.replaceChildren(); renderChats()
+  chat?.events.forEach(e => e.problem ? timeline.append(el('div', 'q', e.problem)) : e.type === 'log' ? renderLog(e.text) : renderDone(e))
+}
+$('#newchat').onclick = () => openChat(null)
+$('#clearchat').onclick = () => { if (current) { current.events = []; save(); openChat(current) } }
+$('#clearall').onclick = () => { chats = []; save(); openChat(null) }
+openChat(current)
 loadMemory()
 problemBox.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) solve() }
 </script>
