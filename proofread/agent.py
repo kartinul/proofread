@@ -31,9 +31,15 @@ def solve(problem, mem=Memory(), max_steps=12, log=print):
             msgs.append({"role": "user", "content": "Use tools. Submit via `answer` with verify code."})
             continue
         for call in msg.tool_calls:
-            args = json.loads(call.function.arguments or "{}")
             name = call.function.name
-            if name == "sympy":
+            try:
+                args = json.loads(call.function.arguments or "{}")
+            except json.JSONDecodeError as e:
+                args, name = {}, "bad_json"
+                out = f"error: tool arguments are not valid JSON ({e}). Retry with valid JSON."
+            if name == "bad_json":
+                pass
+            elif name == "sympy":
                 out = run_sympy(args.get("code", ""))
             elif name == "check":
                 ok, out = check(args.get("a", ""), args.get("b", ""))

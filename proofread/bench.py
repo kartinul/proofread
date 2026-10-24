@@ -25,7 +25,13 @@ def correct(got, want):
 rows = []
 for q, want in PROBLEMS:
     t = time.time(); b = baseline(q); tb = time.time() - t
-    t = time.time(); h, verified = solve(q, Memory(f"/tmp/pr_{MODEL}.jsonl"), log=lambda *a: None); th = time.time() - t
+    t = time.time()
+    try:
+        h, verified = solve(q, Memory(f"/tmp/pr_{MODEL}.jsonl"), log=lambda *a: None)
+    except Exception as e:
+        h, verified = None, False
+        print("solve error:", e, flush=True)
+    th = time.time() - t
     rows.append({"q": q, "want": want, "baseline": b, "base_ok": correct(b, want), "harness": h, "harness_ok": correct(h, want),
                  "verified": verified, "t_base": round(tb, 1), "t_harness": round(th, 1)})
     print(json.dumps(rows[-1]), flush=True)
