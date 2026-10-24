@@ -42,8 +42,8 @@ The gate caught two bogus "proofs" before accepting a real one.
 
 | Model | Baseline (answer directly) | Proofread | Verified by SymPy | Avg time base / harness |
 |---|---|---|---|---|
-| `gpt-oss-20b` | 5/5 | **5/5** | 5/5 | 2s / 73s |
-| `llama-3.1-8b` | 0/6 | **0/6** | 0/6 | 2s / 40s |
+| `gpt-oss-20b` | 6/7 | **7/7** | 7/7 | 2s / 92s |
+| `llama-3.1-8b` | 0/8 | **1/8** | 1/8 | 1s / 39s |
 | `llama-3.3-70b` | 0/2 | **2/2** | 2/2 | 8s / 72s |
 
 8 hard-for-mental-math problems (big products, roots, integrals, divisor counts, modular powers, Fibonacci, sums of squares, determinants); `bench.py`, graded symbolically. Rows are the problems finished before the hackathon deadline, run through free hosted endpoints of open-weight models.
