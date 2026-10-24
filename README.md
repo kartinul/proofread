@@ -13,6 +13,8 @@ Open-weight models are confidently wrong at math. Proofread is a small, open-sou
 | **Actions / verifier gate** | `answer` runs the model's own `verify` code. Accepted only if it prints `True`. Otherwise: `REJECTED: …` goes back into the loop | `agent.py` |
 | **Memory** | Every *verified* answer is appended to `memory.jsonl`; the model can `recall` past results by keyword. Unverified answers never pollute memory | `memory.py` |
 | **Context** | When the transcript exceeds a budget, old tool outputs are collapsed to one line, keeping system prompt, the problem and the last 6 turns intact | `agent.py: compact()` |
+| **Loop breaking** | Small models re-run the same call forever (we watched Llama-3.1-8B print `7919*4231` twelve times). Repeated calls get a `LOOP:` warning, and the last 2 steps force `tool_choice=answer` | `agent.py: solve()` |
+| **Open-model quirks** | Many open models print tool calls as JSON *text* instead of using the tool API (gpt-oss-20b does this). `text_call()` parses them and runs them anyway. Malformed tool JSON is returned to the model as an error instead of crashing the loop | `agent.py: text_call()` |
 
 ```
             ┌────────────── REJECTED: verify printed False ─────────────┐
