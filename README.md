@@ -78,6 +78,8 @@ cd mac && ./run.sh              # needs macOS 26+, talks to server.py
 
 SwiftUI app built on the macOS 26 Liquid Glass APIs (`glassEffect`, `GlassEffectContainer`). It streams the same SSE feed into an animated glass timeline.
 
+![mac app](docs/mac-app.png)
+
 ## Limits
 
 - Verification is only as good as the `verify` code the model writes; a model could write a trivially-true check. The gate catches crashes, wrong arithmetic and missing proofs, not adversarial ones.
