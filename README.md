@@ -42,7 +42,7 @@ The gate caught two bogus "proofs" before accepting a real one.
 
 | Model | Baseline (answer directly) | Proofread | Verified by SymPy | Avg time base / harness |
 |---|---|---|---|---|
-| `gpt-oss-20b` | 6/7 | **7/7** | 7/7 | 2s / 92s |
+| `gpt-oss-20b` | 7/8 | **8/8** | 8/8 | 1s / 83s |
 | `llama-3.1-8b` | 0/8 | **1/8** | 1/8 | 1s / 39s |
 | `llama-3.3-70b` | 0/2 | **2/2** | 2/2 | 8s / 72s |
 
@@ -77,7 +77,9 @@ Env vars: `MODEL`, `BASE_URL` (default `http://localhost:11434/v1`), `API_KEY`.
 python proofread/server.py      # http://localhost:8765
 ```
 
-`server.py` (stdlib only) streams every harness step over Server-Sent Events (`POST /solve`). The glass UI renders a live timeline: each tool call gets a badge, **rejected answers shake red**, and the accepted answer gets a glowing **✓ Verified by SymPy** seal. `GET /memory` shows the verified-results memory.
+`server.py` (stdlib only) streams every harness step over Server-Sent Events (`POST /solve`). A visual **math editor** (MathLive: ∫, d/dx, Σ, lim, √, fractions, matrices, virtual keyboard) lets you type integrals like you write them. The UI renders a live timeline: each tool call gets a badge, **rejected answers shake red**, and the accepted answer gets a glowing **✓ Verified by SymPy** seal. `GET /memory` shows the verified-results memory.
+
+![math input](docs/web-ui-empty.png)
 
 ![web ui](docs/web-ui.png)
 
