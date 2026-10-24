@@ -54,6 +54,7 @@ pre.out{color:#9ae6b4}
 @media (max-width:560px){button.go{width:100%;margin-left:0}textarea{font-size:17px}}
 math-field{display:block;width:100%;margin-top:10px;padding:8px 12px;background:transparent;border:1px solid var(--edge);border-radius:14px;color:var(--text);font-size:22px;--caret-color:var(--text);--selection-background-color:rgba(167,139,250,.35);--contains-highlight-background-color:transparent}
 math-field::part(menu-toggle){display:none}
+#memory{margin-top:16px;padding:14px 16px}#memory h3{font:600 12px Inter;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}.mem{display:flex;gap:8px;padding:6px 8px;border-radius:8px;font:13px 'JetBrains Mono',monospace;cursor:pointer;color:var(--dim)}.mem:hover{background:rgba(255,255,255,.05);color:var(--text)}.mem b{color:var(--green);font-weight:500;margin-left:auto}#stats{margin-top:16px;font:13px 'JetBrains Mono',monospace;color:var(--dim)}.step img{display:block;max-width:100%;margin-top:10px;border-radius:12px;background:#fff}button.copy{margin-left:8px}
 .ins{margin-top:8px}.ins .chip{font-family:'JetBrains Mono',monospace}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.98.6/dist/mathlive.min.js"></script>
@@ -82,11 +83,15 @@ math-field::part(menu-toggle){display:none}
       <button class="go" id="go">Solve</button>
     </div>
   </section>
+  <section class="glass" id="memory"><h3>Verified memory</h3><div id="memlist"></div></section>
+  <div id="stats"></div>
   <div id="timeline"></div>
 </main>
 <script>
 const $ = s => document.querySelector(s)
 const problemBox = $('#problem'), mathField = $('#math'), goButton = $('#go'), timeline = $('#timeline')
+
+let steps = 0, rejections = 0
 
 const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls || '', textContent: text ?? '' })
 
@@ -112,6 +117,9 @@ function renderLog(text) {
   head.append(el('span', `badge ${['sympy', 'check', 'recall', 'answer', 'prose'].includes(tool) ? tool : 'other'}`, tool), el('span', '', rejected ? 'REJECTED' : ok ? 'verify printed True' : ''))
   step.append(head, el('pre', '', body))
   if (output) step.append(el('pre', 'out', output))
+  const plot = output.match(/saved plots\/([\w.-]+\.png)/)
+  if (plot) step.append(Object.assign(el('img'), { src: `/plots/${plot[1]}` }))
+  steps++; if (rejected) rejections++
   timeline.insertBefore(step, $('.spinner'))
 }
 
@@ -119,7 +127,24 @@ function renderDone({ answer, verified, error }) {
   $('.spinner')?.remove()
   const card = el('div', `glass result ${verified ? '' : 'fail'}`)
   card.append(el('div', '', verified ? 'Answer' : 'No verified answer'), el('div', 'val', answer ?? '—'), el('div', 'seal', verified ? '✓ Verified by SymPy' : (error ? `✗ ${error}` : '✗ Not verified')))
+  if (answer) {
+    const copy = el('button', 'chip copy', 'Copy answer')
+    copy.onclick = () => navigator.clipboard.writeText(answer).then(() => copy.textContent = 'Copied')
+    card.append(copy)
+  }
   timeline.append(card)
+}
+
+async function loadMemory() {
+  try {
+    const items = await (await fetch('/memory')).json()
+    $('#memlist').replaceChildren(...items.map(({ problem, answer }) => {
+      const row = el('div', 'mem', `${problem} →`)
+      row.append(el('b', '', `${answer} ✓`))
+      row.onclick = () => { problemBox.value = problem; problemBox.focus() }
+      return row
+    }))
+  } catch {}
 }
 
 async function solve() {
@@ -129,6 +154,10 @@ async function solve() {
   goButton.disabled = true
   timeline.replaceChildren(el('div', 'spinner'))
   $('.spinner').innerHTML = '<b></b><b></b><b></b>'
+  steps = rejections = 0
+  const start = Date.now()
+  const tick = () => $('#stats').textContent = `${((Date.now() - start) / 1000).toFixed(1)}s · ${steps} steps · ${rejections} rejections`
+  const timer = setInterval(tick, 100)
   try {
     const res = await fetch('/solve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem }) })
     if (!res.ok) throw new Error(await res.text())
@@ -146,12 +175,15 @@ async function solve() {
       }
     }
   } catch (e) { renderDone({ answer: null, verified: false, error: e.message }) }
+  clearInterval(timer); tick()
   goButton.disabled = false
+  loadMemory()
 }
 
 document.querySelectorAll('.chip:not([data-tex])').forEach(chip => chip.onclick = () => { problemBox.value = chip.textContent; mathField.value = ''; solve() })
 document.querySelectorAll('[data-tex]').forEach(btn => btn.onclick = () => { mathField.insert(btn.dataset.tex, { selectionMode: 'placeholder' }); mathField.focus() })
 goButton.onclick = solve
+loadMemory()
 problemBox.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) solve() }
 </script>
 </body>
