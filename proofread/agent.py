@@ -19,6 +19,34 @@ def compact(msgs):
             m["content"] = str(m["content"])[:120] + " …[compacted]"
     return head + mid + tail
 
+def text_call(content):
+    # open models often print a tool call as JSON text instead of using the tool API
+    try:
+        args = json.loads(content[content.index("{"):content.rindex("}") + 1])
+    except ValueError:
+        return None
+    if not isinstance(args, dict):
+        return None
+    name = args.pop("name", None) or ("answer" if "verify" in args else "sympy" if "code" in args else "check" if "a" in args else None)
+    args = args.get("arguments", args)
+    return (name, args) if name else None
+
+def run_tool(name, args, problem, mem, log):
+    if name == "sympy":
+        return run_sympy(args.get("code", "")), None
+    if name == "check":
+        return check(args.get("a", ""), args.get("b", ""))[1], None
+    if name == "recall":
+        return json.dumps(mem.recall(args.get("query", ""))), None
+    if name == "answer":
+        out = run_sympy(args.get("verify", ""))
+        log(f"  answer={args.get('answer')!r} verify→{out}")
+        if out.splitlines()[-1:] == ["True"]:
+            mem.add(problem, str(args["answer"]))
+            return out, str(args["answer"])
+        return f"REJECTED: verify printed {out!r}, not True. Fix and resubmit.", None
+    return f"unknown tool {name}", None
+
 def solve(problem, mem=Memory(), max_steps=12, log=print):
     msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": problem}]
     seen = set()
@@ -27,39 +55,31 @@ def solve(problem, mem=Memory(), max_steps=12, log=print):
         force = {"tool_choice": {"type": "function", "function": {"name": "answer"}}} if step >= max_steps - 2 else {}
         msg = client.chat.completions.create(model=MODEL, messages=compact(msgs), tools=SCHEMAS, **force).choices[0].message
         msgs.append(msg.model_dump(exclude_none=True))
-        if not msg.tool_calls:
-            msgs.append({"role": "user", "content": "Use tools. Submit via `answer` with verify code."})
-            continue
-        for call in msg.tool_calls:
-            name = call.function.name
+        calls = []
+        for call in msg.tool_calls or []:
             try:
                 args = json.loads(call.function.arguments or "{}")
-            except json.JSONDecodeError as e:
-                args, name = {}, "bad_json"
-                out = f"error: tool arguments are not valid JSON ({e}). Retry with valid JSON."
-            if name == "bad_json":
-                pass
-            elif name == "sympy":
-                out = run_sympy(args.get("code", ""))
-            elif name == "check":
-                ok, out = check(args.get("a", ""), args.get("b", ""))
-            elif name == "recall":
-                out = json.dumps(mem.recall(args.get("query", ""))) or "[]"
-            elif name == "answer":
-                out = run_sympy(args.get("verify", ""))
-                log(f"  answer={args.get('answer')!r} verify→{out}")
-                if out.splitlines()[-1:] == ["True"]:
-                    mem.add(problem, args["answer"])
-                    return args["answer"], True
-                out = f"REJECTED: verify printed {out!r}, not True. Fix and resubmit."
-            else:
-                out = f"unknown tool {name}"
-            key = (name, call.function.arguments)
+                assert isinstance(args, dict)
+                calls.append((call.id, call.function.name, args))
+            except (json.JSONDecodeError, AssertionError) as e:
+                msgs.append({"role": "tool", "tool_call_id": call.id, "content": f"error: arguments are not valid JSON ({e}). Retry."})
+        if not msg.tool_calls:
+            parsed = text_call(msg.content or "")
+            if not parsed:
+                log(f"  prose: {(msg.content or '')[:150]!r}")
+                msgs.append({"role": "user", "content": "Do not answer in prose. Call the `answer` tool with `answer` and SymPy `verify` code that prints True."})
+                continue
+            calls.append((None, *parsed))
+        for call_id, name, args in calls:
+            out, final = run_tool(name, args, problem, mem, log)
+            if final is not None:
+                return final, True
+            key = (name, json.dumps(args, sort_keys=True))
             if key in seen and name != "answer":
                 out += "\nLOOP: you already ran this exact call. Stop repeating; call `answer` now."
             seen.add(key)
             log(f"  {name}({json.dumps(args)[:150]}) → {out[:150]}")
-            msgs.append({"role": "tool", "tool_call_id": call.id, "content": out})
+            msgs.append({"role": "tool", "tool_call_id": call_id, "content": out} if call_id else {"role": "user", "content": f"[{name} result] {out}"})
     return None, False
 
 if __name__ == "__main__":
