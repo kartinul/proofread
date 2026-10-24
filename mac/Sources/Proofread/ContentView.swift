@@ -128,7 +128,6 @@ struct StepRow: View {
 struct AnswerCard: View {
     let answer: String
     let verified: Bool
-    @State private var glow = false
 
     var body: some View {
         let color: Color = verified ? .green : .orange
@@ -138,14 +137,12 @@ struct AnswerCard: View {
                 .font(.headline)
                 .padding(.horizontal, 16).padding(.vertical, 8)
                 .foregroundStyle(color)
-                .glassEffect(.regular.tint(color.opacity(0.3)), in: .capsule)
-                .shadow(color: color.opacity(glow ? 0.9 : 0.3), radius: glow ? 18 : 6)
+                .glassEffect(.regular, in: .capsule)
         }
         .frame(maxWidth: .infinity)
         .padding(28)
-        .glassEffect(.regular.tint(color.opacity(0.12)), in: .rect(cornerRadius: 28))
+        .glassEffect(.regular, in: .rect(cornerRadius: 28))
         .padding(.top, 8)
-        .onAppear { withAnimation(.easeInOut(duration: 1.4).repeatForever()) { glow = true } }
         .transition(.scale.combined(with: .opacity))
     }
 }
