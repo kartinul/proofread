@@ -60,7 +60,8 @@ def solve(problem, mem=Memory(), max_steps=12, log=print):
         # last 2 steps: force the model to commit instead of looping
         force = {"tool_choice": {"type": "function", "function": {"name": "answer"}}} if step >= max_steps - 2 else {}
         msg = client.chat.completions.create(model=MODEL, messages=compact(msgs), tools=SCHEMAS, **force).choices[0].message
-        msgs.append(msg.model_dump(exclude_none=True))
+        tool_calls = [{"id": c.id, "type": "function", "function": {"name": c.function.name, "arguments": c.function.arguments}} for c in msg.tool_calls or []]
+        msgs.append({"role": "assistant", "content": msg.content or "", **({"tool_calls": tool_calls} if tool_calls else {})})
         calls = []
         for call in msg.tool_calls or []:
             try:
