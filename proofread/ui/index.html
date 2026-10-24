@@ -52,7 +52,11 @@ pre.out{color:#9ae6b4}
 .spinner b:nth-child(2){animation-delay:.2s}.spinner b:nth-child(3){animation-delay:.4s}
 @keyframes pulse{to{opacity:.2;transform:scale(.6)}}
 @media (max-width:560px){button.go{width:100%;margin-left:0}textarea{font-size:17px}}
+math-field{display:block;width:100%;margin-top:10px;padding:8px 12px;background:transparent;border:1px solid var(--edge);border-radius:14px;color:var(--text);font-size:22px;--caret-color:var(--text);--selection-background-color:rgba(167,139,250,.35);--contains-highlight-background-color:transparent}
+math-field::part(menu-toggle){display:none}
+.ins{margin-top:8px}.ins .chip{font-family:'JetBrains Mono',monospace}
 </style>
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.98.6/dist/mathlive.min.js"></script>
 </head>
 <body>
 <div class="mesh"><i></i><i></i><i></i></div>
@@ -60,6 +64,17 @@ pre.out{color:#9ae6b4}
   <header><h1>Proofread</h1><p>A math agent that doesn't trust itself. Every answer is checked by SymPy.</p></header>
   <section class="glass ask">
     <textarea id="problem" placeholder="Ask a math problem…"></textarea>
+    <math-field id="math" math-virtual-keyboard-policy="auto"></math-field>
+    <div class="row ins">
+      <button class="chip" data-tex="\int_{#?}^{#?}#?\,dx">∫</button>
+      <button class="chip" data-tex="\frac{d}{dx}#?">d/dx</button>
+      <button class="chip" data-tex="\sum_{#?}^{#?}#?">Σ</button>
+      <button class="chip" data-tex="\lim_{x\to#?}#?">lim</button>
+      <button class="chip" data-tex="\sqrt{#?}">√</button>
+      <button class="chip" data-tex="\frac{#?}{#?}">a/b</button>
+      <button class="chip" data-tex="#@^{2}">x²</button>
+      <button class="chip" data-tex="\begin{pmatrix}#? & #?\\ #? & #?\end{pmatrix}">matrix</button>
+    </div>
     <div class="row">
       <button class="chip">What is 7919 * 4231?</button>
       <button class="chip">Integral of x^2 e^x from 0 to 1</button>
@@ -71,7 +86,7 @@ pre.out{color:#9ae6b4}
 </main>
 <script>
 const $ = s => document.querySelector(s)
-const problemBox = $('#problem'), goButton = $('#go'), timeline = $('#timeline')
+const problemBox = $('#problem'), mathField = $('#math'), goButton = $('#go'), timeline = $('#timeline')
 
 const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls || '', textContent: text ?? '' })
 
@@ -108,7 +123,8 @@ function renderDone({ answer, verified, error }) {
 }
 
 async function solve() {
-  const problem = problemBox.value.trim()
+  const math = mathField.value && (mathField.getValue('ascii-math') || mathField.value)
+  const problem = [problemBox.value.trim() || (math && 'Evaluate:'), math].filter(Boolean).join(' ')
   if (!problem) return problemBox.focus()
   goButton.disabled = true
   timeline.replaceChildren(el('div', 'spinner'))
@@ -133,7 +149,8 @@ async function solve() {
   goButton.disabled = false
 }
 
-document.querySelectorAll('.chip').forEach(chip => chip.onclick = () => { problemBox.value = chip.textContent; solve() })
+document.querySelectorAll('.chip:not([data-tex])').forEach(chip => chip.onclick = () => { problemBox.value = chip.textContent; mathField.value = ''; solve() })
+document.querySelectorAll('[data-tex]').forEach(btn => btn.onclick = () => { mathField.insert(btn.dataset.tex, { selectionMode: 'placeholder' }); mathField.focus() })
 goButton.onclick = solve
 problemBox.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) solve() }
 </script>
