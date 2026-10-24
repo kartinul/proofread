@@ -32,20 +32,22 @@ struct ContentView: View {
         }
         .padding(28)
         .background(
-            LinearGradient(colors: [.indigo.opacity(0.25), .clear, .teal.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            Color.black.opacity(0.35)
                 .ignoresSafeArea()
         )
     }
 
     private var header: some View {
         HStack {
-            Image(systemName: "checkmark.seal.fill").font(.largeTitle).foregroundStyle(.green.gradient)
+            Image(systemName: "checkmark.seal.fill").font(.largeTitle).foregroundStyle(.green)
             VStack(alignment: .leading) {
                 Text("Proofread").font(.largeTitle.bold())
                 Text("Math answers, verified step by step").foregroundStyle(.secondary)
             }
             Spacer()
             if solver.running { ProgressView().controlSize(.small) }
+            Button("Clear", systemImage: "trash") { solver.steps = []; solver.answer = nil; solver.error = nil }
+                .buttonStyle(.glass).disabled(solver.running)
         }
     }
 
