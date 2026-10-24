@@ -15,6 +15,7 @@ struct ContentView: View {
         VStack(spacing: 20) {
             header
             inputField
+            if problem.contains("$") || problem.contains("\\") { MathPreview(tex: problem).frame(height: 110) }
             chips
             ScrollViewReader { proxy in
                 ScrollView {
