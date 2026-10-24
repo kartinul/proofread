@@ -1,4 +1,4 @@
-import json, os, queue, sys, threading
+import json, os, queue, re, sys, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -31,6 +31,8 @@ class Handler(BaseHTTPRequestHandler):
             mem = Path("memory.jsonl")
             rows = [json.loads(l) for l in mem.read_text().splitlines() if l.strip()] if mem.exists() else []
             self.send(200, json.dumps(rows).encode(), "application/json")
+        elif re.fullmatch(r"/plots/\w+\.png", self.path) and (HERE / self.path[1:]).exists():
+            self.send(200, (HERE / self.path[1:]).read_bytes(), "image/png")
         else:
             self.send(404, b"not found", "text/plain")
 

@@ -3,3 +3,4 @@ __pycache__/
 *.log
 memory.jsonl
 .build/
+proofread/plots/

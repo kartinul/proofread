@@ -1,4 +1,7 @@
-import ast, subprocess, sys
+import ast, hashlib, subprocess, sys
+from pathlib import Path
+
+PLOTS = Path(__file__).parent / "plots"
 
 def auto_print(code):
     # REPL-style: print the last bare expression, since models often forget print()
@@ -24,6 +27,15 @@ def check(a, b):
     out = run_sympy(f"print(simplify(sympify({a!r}) - sympify({b!r})) == 0)")
     return out == "True", out
 
+def plot(expr, a, b):
+    name = hashlib.md5(f"{expr}|{a}|{b}".encode()).hexdigest()[:12] + ".png"
+    PLOTS.mkdir(exist_ok=True)
+    out = run_sympy(f"""import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt, numpy as np
+xs = np.linspace({float(a)}, {float(b)}, 400)
+plt.plot(xs, np.broadcast_to(lambdify(x, sympify({expr!r}), "numpy")(xs), xs.shape)); plt.title({expr!r}); plt.grid(True)
+plt.savefig({str(PLOTS / name)!r}); print("saved plots/{name}")""", timeout=30)
+    return out
+
 SCHEMAS = [
     {"type": "function", "function": {"name": "sympy", "description": "Run Python with `from sympy import *` preloaded. Print results.",
         "parameters": {"type": "object", "properties": {"code": {"type": "string"}}, "required": ["code"]}}},
@@ -31,6 +43,8 @@ SCHEMAS = [
         "parameters": {"type": "object", "properties": {"a": {"type": "string"}, "b": {"type": "string"}}, "required": ["a", "b"]}}},
     {"type": "function", "function": {"name": "recall", "description": "Search memory of previously verified results.",
         "parameters": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}}},
+    {"type": "function", "function": {"name": "plot", "description": "Plot a SymPy expression of x over [a,b]; returns image path",
+        "parameters": {"type": "object", "properties": {"expr": {"type": "string"}, "a": {"type": "number"}, "b": {"type": "number"}}, "required": ["expr", "a", "b"]}}},
     {"type": "function", "function": {"name": "answer", "description": "Submit final answer. `verify` is SymPy code that prints True iff the answer is correct (e.g. substitute back).",
         "parameters": {"type": "object", "properties": {"answer": {"type": "string"}, "verify": {"type": "string"}}, "required": ["answer", "verify"]}}},
 ]

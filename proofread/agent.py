@@ -1,6 +1,6 @@
 import json, os, sys
 from openai import OpenAI
-from tools import SCHEMAS, run_sympy, check
+from tools import SCHEMAS, run_sympy, check, plot
 from memory import Memory
 
 MODEL = os.getenv("MODEL", "qwen3.5:9b-mlx")
@@ -44,6 +44,8 @@ def run_tool(name, args, problem, mem, log):
         return check(args.get("a", ""), args.get("b", ""))[1], None
     if name == "recall":
         return json.dumps(mem.recall(args.get("query", ""))), None
+    if name == "plot":
+        return plot(args.get("expr", ""), args.get("a", 0), args.get("b", 1)), None
     if name == "answer":
         out = run_sympy(args.get("verify", ""))
         log(f"  answer={args.get('answer')!r} verify→{out}")
