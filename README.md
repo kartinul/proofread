@@ -40,7 +40,18 @@ The gate caught two bogus "proofs" before accepting a real one.
 
 ## Results
 
-RESULTS_PLACEHOLDER
+| Model | Baseline (answer directly) | Proofread | Verified by SymPy | Avg time base / harness |
+|---|---|---|---|---|
+| `gpt-oss-20b` | 5/5 | **5/5** | 5/5 | 2s / 73s |
+| `llama-3.1-8b` | 0/6 | **0/6** | 0/6 | 2s / 40s |
+| `llama-3.3-70b` | 0/2 | **2/2** | 2/2 | 8s / 72s |
+
+8 hard-for-mental-math problems (big products, roots, integrals, divisor counts, modular powers, Fibonacci, sums of squares, determinants); `bench.py`, graded symbolically. Rows are the problems finished before the hackathon deadline, run through free hosted endpoints of open-weight models.
+
+- **Llama-3.3-70B goes from 0 correct to all correct.** Answering directly, it botches the arithmetic. Under Proofread, every answer is computed and SymPy-verified.
+- **gpt-oss-20b** is already strong. The harness keeps it honest: every answer comes with a passing proof.
+- **Llama-3.1-8B** shows the limit: it can compute the right value but never commits to an answer. That's what drove the loop-breaker and quirk normalizers above.
+- The cost is latency: each answer takes several model calls.
 
 ## Run it
 
