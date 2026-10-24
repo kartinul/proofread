@@ -14,7 +14,7 @@ Open-weight models are confidently wrong at math. Proofread is a small, open-sou
 | **Memory** | Every *verified* answer is appended to `memory.jsonl`; the model can `recall` past results by keyword. Unverified answers never pollute memory | `memory.py` |
 | **Context** | When the transcript exceeds a budget, old tool outputs are collapsed to one line, keeping system prompt, the problem and the last 6 turns intact | `agent.py: compact()` |
 | **Loop breaking** | Small models re-run the same call forever (we watched Llama-3.1-8B print `7919*4231` twelve times). Repeated calls get a `LOOP:` warning, and the last 2 steps force `tool_choice=answer` | `agent.py: solve()` |
-| **Open-model quirks** | Many open models print tool calls as JSON *text* instead of using the tool API (gpt-oss-20b does this). `text_call()` parses them and runs them anyway. Malformed tool JSON is returned to the model as an error instead of crashing the loop | `agent.py: text_call()` |
+| **Open-model quirks** | Every one of these came from watching real open models fail: tool calls printed as JSON *text* (gpt-oss-20b) get parsed and run anyway (`text_call`). Arguments wrapped in `{"parameters": {...}}` (Llama-3.1-8B) get unwrapped (`unwrap`). Code with no `print()` gets REPL-style auto-printing of the last expression (`auto_print`). Malformed tool JSON goes back to the model as an error instead of crashing the loop | `agent.py`, `tools.py` |
 
 ```
             ┌────────────── REJECTED: verify printed False ─────────────┐
@@ -59,6 +59,24 @@ python test_tools.py   # self-test for tools + memory
 ```
 
 Env vars: `MODEL`, `BASE_URL` (default `http://localhost:11434/v1`), `API_KEY`.
+
+### Web UI — watch the harness think
+
+```bash
+python proofread/server.py      # http://localhost:8765
+```
+
+`server.py` (stdlib only) streams every harness step over Server-Sent Events (`POST /solve`). The glass UI renders a live timeline: each tool call gets a badge, **rejected answers shake red**, and the accepted answer gets a glowing **✓ Verified by SymPy** seal. `GET /memory` shows the verified-results memory.
+
+![web ui](docs/web-ui.png)
+
+### Native macOS app (Liquid Glass)
+
+```bash
+cd mac && ./run.sh              # needs macOS 26+, talks to server.py
+```
+
+SwiftUI app built on the macOS 26 Liquid Glass APIs (`glassEffect`, `GlassEffectContainer`). It streams the same SSE feed into an animated glass timeline.
 
 ## Limits
 
