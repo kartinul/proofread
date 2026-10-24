@@ -1,7 +1,7 @@
 import json, re, time
 from agent import client, MODEL, solve
 from memory import Memory
-from tools import check
+from bench_grade import correct
 
 PROBLEMS = [
     ("What is 7919 * 4231?", "33505289"),
@@ -17,10 +17,6 @@ PROBLEMS = [
 def baseline(q):
     r = client.chat.completions.create(model=MODEL, messages=[{"role": "user", "content": q + " Reply with only the final answer."}])
     return (r.choices[0].message.content or "").strip().splitlines()[-1]
-
-def correct(got, want):
-    got = re.sub(r"[\\$,]|\\boxed|[{}]", "", got or "").strip()
-    return got == want or check(got, want)[0]
 
 rows = []
 for q, want in PROBLEMS:

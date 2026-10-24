@@ -1,8 +1,11 @@
 import glob, json, os
+from bench_grade import correct
 
 lines = ["| Model | Baseline (answer directly) | Proofread | Verified by SymPy | Avg time base / harness |", "|---|---|---|---|---|"]
 for path in sorted(glob.glob(os.path.join(os.path.dirname(__file__), "..", "bench_*.log"))):
     rows = [json.loads(l) for l in open(path) if l.startswith("{")]
+    for r in rows:
+        r["harness_ok"], r["base_ok"] = correct(r["harness"], r["want"]), correct(r["baseline"], r["want"])
     if not rows:
         continue
     n = len(rows)
