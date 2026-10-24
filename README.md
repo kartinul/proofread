@@ -9,7 +9,7 @@ Open-weight models are confidently wrong at math. Proofread is a small, open-sou
 | Concern | How Proofread handles it | File |
 |---|---|---|
 | **Prompts** | System prompt forbids mental arithmetic; nudges the model back to tools if it answers in prose | `agent.py` |
-| **Tools** | `sympy(code)` — sandboxed subprocess (`python -I`, 10s timeout) with SymPy preloaded · `check(a, b)` — symbolic equality · `recall(query)` — memory search · `answer(answer, verify)` | `tools.py` |
+| **Tools** | `sympy(code)` — sandboxed subprocess (`python -I`, 10s timeout) with SymPy preloaded · `check(a, b)` — symbolic equality · `recall(query)` — memory search · `plot(expr, a, b)` — matplotlib PNG, shown inline in the UI · `answer(answer, verify)` | `tools.py` |
 | **Actions / verifier gate** | `answer` runs the model's own `verify` code. Accepted only if it prints `True`. Otherwise: `REJECTED: …` goes back into the loop | `agent.py` |
 | **Memory** | Every *verified* answer is appended to `memory.jsonl`; the model can `recall` past results by keyword. Unverified answers never pollute memory | `memory.py` |
 | **Context** | When the transcript exceeds a budget, old tool outputs are collapsed to one line, keeping system prompt, the problem and the last 6 turns intact | `agent.py: compact()` |
@@ -77,7 +77,7 @@ Env vars: `MODEL`, `BASE_URL` (default `http://localhost:11434/v1`), `API_KEY`.
 python proofread/server.py      # http://localhost:8765
 ```
 
-`server.py` (stdlib only) streams every harness step over Server-Sent Events (`POST /solve`). A visual **math editor** (MathLive: ∫, d/dx, Σ, lim, √, fractions, matrices, virtual keyboard) lets you type integrals like you write them. The UI renders a live timeline: each tool call gets a badge, **rejected answers shake red**, and the accepted answer gets a glowing **✓ Verified by SymPy** seal. `GET /memory` shows the verified-results memory.
+`server.py` (stdlib only) streams every harness step over Server-Sent Events (`POST /solve`). A visual **math editor** (MathLive: ∫, d/dx, Σ, lim, √, fractions, matrices, virtual keyboard) lets you type integrals like you write them. The UI renders a live timeline: each tool call gets a badge, **rejected answers shake red**, and the accepted answer gets a glowing **✓ Verified by SymPy** seal. `GET /memory` feeds a **Verified memory** panel (click a row to re-ask). Live stats show elapsed time, step count and rejection count, and a copy-answer button sits on the result. Plots appear inline in the timeline.
 
 ![math input](docs/web-ui-empty.png)
 
